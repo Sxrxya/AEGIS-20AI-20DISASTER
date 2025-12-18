@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { 
-  AlertTriangle, 
-  Search, 
-  Filter, 
-  Clock, 
-  MapPin, 
-  ShieldAlert, 
-  CheckCircle2, 
+import {
+  AlertTriangle,
+  Search,
+  Filter,
+  Clock,
+  MapPin,
+  ShieldAlert,
+  CheckCircle2,
   ChevronRight,
   Wind,
   Waves,
@@ -15,7 +15,8 @@ import {
   TrendingUp,
   MoreVertical,
   Download,
-  Share2
+  Share2,
+  Info
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Alert } from "@shared/api";
@@ -24,23 +25,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
 
 export default function AlertsPage() {
   const [searchQuery, setSearchQuery] = useState("");
