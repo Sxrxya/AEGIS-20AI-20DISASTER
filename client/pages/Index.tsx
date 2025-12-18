@@ -8,6 +8,7 @@ import {
   ArrowDownRight,
   Clock,
   MapPin,
+  Map as MapIcon,
   ShieldAlert,
   Wind,
   Droplets,
