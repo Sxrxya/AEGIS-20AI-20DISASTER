@@ -10,7 +10,8 @@ import {
   Activity,
   Target,
   BrainCircuit,
-  ChevronDown
+  ChevronDown,
+  Clock
 } from "lucide-react";
 import { 
   AreaChart, 
