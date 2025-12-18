@@ -10,10 +10,22 @@ import {
   Shield,
   Menu,
   X,
-  Activity
+  Activity,
+  LogOut,
+  User as UserIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,7 +42,12 @@ const navigation = [
 
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const userInitials = user?.name
+    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase()
+    : "U";
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -67,9 +84,43 @@ export function Layout({ children }: LayoutProps) {
               <Bell className="h-5 w-5" />
               <span className="absolute top-2 right-2 h-2 w-2 bg-emergency rounded-full animate-pulse" />
             </Button>
-            <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center border border-border">
-              <span className="text-xs font-bold">GOV</span>
-            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8 border border-border">
+                    <AvatarFallback className="bg-secondary text-xs font-bold">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user?.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2">
+                  <UserIcon className="h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2">
+                  <Shield className="h-4 w-4" />
+                  <span>Role: {user?.role}</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2 text-emergency focus:text-emergency" onClick={logout}>
+                  <LogOut className="h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button
               variant="ghost"
               size="icon"
