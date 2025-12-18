@@ -1,10 +1,18 @@
 import React from "react";
-import { MapPin, ShieldAlert, Layers, Navigation, ZoomIn, ZoomOut, Filter } from "lucide-react";
+import { MapPin, ShieldAlert, Layers, Navigation, ZoomIn, ZoomOut, Filter, Wind, Waves, Activity } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Alert } from "@shared/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export default function MapPage() {
+  const { data: alerts, isLoading } = useQuery<Alert[]>({
+    queryKey: ["active-alerts"],
+    queryFn: () => fetch("/api/alerts").then((res) => res.json()),
+  });
+
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col relative overflow-hidden">
       {/* Map Background Simulation */}
@@ -52,20 +60,30 @@ export default function MapPage() {
         {/* Simulated Heatmap Blobs */}
         <div className="absolute top-1/4 left-1/3 w-64 h-64 bg-emergency/20 rounded-full blur-[80px] animate-pulse" />
         <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-warning/10 rounded-full blur-[100px]" />
-        
-        {/* Simulated Markers */}
-        <div className="absolute top-[30%] left-[40%] pointer-events-auto group">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-emergency/30 rounded-full animate-ping" />
-            <MapPin className="h-8 w-8 text-emergency drop-shadow-[0_0_10px_rgba(239,68,68,0.8)] cursor-pointer" />
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-card border border-border rounded-lg p-3 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity">
-              <p className="text-xs font-bold text-emergency">CRITICAL RISK</p>
-              <p className="text-sm font-bold">North Coast Zone A</p>
-              <p className="text-[10px] text-muted-foreground mt-1">Cyclone Path: 94% Confidence</p>
-              <Button size="sm" className="w-full mt-2 h-7 text-[10px]">View Details</Button>
+
+        {/* Live Markers from Backend */}
+        {!isLoading && alerts?.map((alert, index) => {
+          // Randomly position markers for simulation since we don't have lat/long in the mock data yet
+          const top = 20 + (index * 25) + "%";
+          const left = 30 + (index * 20) + "%";
+          const color = alert.severity === "Emergency" ? "text-emergency" : alert.severity === "Warning" ? "text-warning" : "text-blue-400";
+          const bgColor = alert.severity === "Emergency" ? "bg-emergency/30" : alert.severity === "Warning" ? "bg-warning/30" : "bg-blue-400/30";
+
+          return (
+            <div key={alert.id} className="absolute pointer-events-auto group" style={{ top, left }}>
+              <div className="relative">
+                <div className={cn("absolute -inset-4 rounded-full animate-ping", bgColor)} />
+                <MapPin className={cn("h-8 w-8 drop-shadow-[0_0_10px_rgba(0,0,0,0.5)] cursor-pointer", color)} />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-card border border-border rounded-lg p-3 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                  <p className={cn("text-xs font-bold", color)}>{alert.severity.toUpperCase()} RISK</p>
+                  <p className="text-sm font-bold">{alert.location}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{alert.type}: {Math.round(alert.confidence * 100)}% Confidence</p>
+                  <Button size="sm" className="w-full mt-2 h-7 text-[10px]">View Details</Button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
 
       {/* Bottom Legend */}
