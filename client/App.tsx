@@ -7,6 +7,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import MapPage from "./pages/MapPage";
+import AlertsPage from "./pages/AlertsPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import HealthPage from "./pages/HealthPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import { Layout } from "./components/Layout";
 
@@ -39,10 +43,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/map" element={<MapPage />} />
-            <Route path="/alerts" element={<PlaceholderPage title="Alert Management" />} />
-            <Route path="/analytics" element={<PlaceholderPage title="Historical Analytics" />} />
-            <Route path="/health" element={<PlaceholderPage title="System Health & Sensor Monitoring" />} />
-            <Route path="/settings" element={<PlaceholderPage title="Platform Settings" />} />
+            <Route path="/alerts" element={<AlertsPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/health" element={<HealthPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
