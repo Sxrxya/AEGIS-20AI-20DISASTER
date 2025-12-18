@@ -1,3 +1,15 @@
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'GOV' | 'PUBLIC' | 'EMERGENCY';
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
 export interface RiskScore {
   region: string;
   score: number;
