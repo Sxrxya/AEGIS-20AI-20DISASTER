@@ -1,12 +1,28 @@
-/**
- * Shared code between client and server
- * Useful to share types between client and server
- * and/or small pure JS functions that can be used on both client and server
- */
+export interface RiskScore {
+  region: string;
+  score: number;
+  trend: 'up' | 'down' | 'stable';
+  disasterType: string;
+  confidence: number;
+}
 
-/**
- * Example response type for /api/demo
- */
+export interface Alert {
+  id: string;
+  type: string;
+  severity: 'Watch' | 'Warning' | 'Emergency';
+  location: string;
+  timestamp: string;
+  confidence: number;
+  description: string;
+}
+
+export interface DashboardStats {
+  activeAlerts: number;
+  avgRiskScore: number;
+  sensorsOnline: number;
+  populationAtRisk: number;
+}
+
 export interface DemoResponse {
   message: string;
 }
