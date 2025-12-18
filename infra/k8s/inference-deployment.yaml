@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: disaster-inference-service
+  namespace: aegis-prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: inference
+  template:
+    metadata:
+      labels:
+        app: inference
+    spec:
+      containers:
+      - name: inference-engine
+        image: gcr.io/aegis-disaster-ai/inference:v1.2.0
+        ports:
+        - containerPort: 50051 # gRPC
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+            memory: "8Gi"
+            cpu: "4"
+          requests:
+            nvidia.com/gpu: 1
+            memory: "4Gi"
+            cpu: "2"
+        env:
+        - name: MODEL_VERSION
+          value: "v2024.03.15"
+        - name: KAFKA_BROKERS
+          value: "kafka-cluster:9092"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inference-service
+spec:
+  selector:
+    app: inference
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 50051
