@@ -1,117 +1,321 @@
-import React from "react";
-import { MapPin, ShieldAlert, Layers, Navigation, ZoomIn, ZoomOut, Filter, Wind, Waves, Activity } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { 
+  MapContainer, 
+  TileLayer, 
+  Marker, 
+  Popup, 
+  Circle, 
+  LayersControl, 
+  LayerGroup,
+  useMap
+} from "react-leaflet";
+import L from "leaflet";
+import { 
+  MapPin, 
+  ShieldAlert, 
+  Layers, 
+  Navigation, 
+  ZoomIn, 
+  ZoomOut, 
+  Filter, 
+  Wind, 
+  Waves, 
+  Activity,
+  X,
+  Info,
+  TrendingUp,
+  Users,
+  Clock,
+  ChevronRight
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Alert } from "@shared/api";
+import { Alert, RiskScore } from "@shared/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+
+// Fix Leaflet icon issue
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+const createCustomIcon = (severity: string) => {
+  const color = severity === "Emergency" ? "#ef4444" : severity === "Warning" ? "#f59e0b" : "#3b82f6";
+  return L.divIcon({
+    className: 'custom-div-icon',
+    html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px ${color};"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6]
+  });
+};
 
 export default function MapPage() {
+  const [selectedRegion, setSelectedRegion] = useState<Alert | null>(null);
+  const [activeLayers, setActiveLayers] = useState({
+    precipitation: true,
+    seismic: false,
+    population: false
+  });
+
   const { data: alerts, isLoading } = useQuery<Alert[]>({
     queryKey: ["active-alerts"],
     queryFn: () => fetch("/api/alerts").then((res) => res.json()),
   });
 
+  const { data: riskScores } = useQuery<RiskScore[]>({
+    queryKey: ["risk-scores"],
+    queryFn: () => fetch("/api/risk-scores").then((res) => res.json()),
+  });
+
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col relative overflow-hidden">
-      {/* Map Background Simulation */}
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center grayscale opacity-40" />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/80" />
+    <div className="h-[calc(100vh-4rem)] flex relative overflow-hidden">
+      {/* Main Map Area */}
+      <div className="flex-1 relative z-0">
+        <MapContainer 
+          center={[44.5, -123.0]} 
+          zoom={7} 
+          style={{ height: "100%", width: "100%", background: "#020617" }}
+          zoomControl={false}
+        >
+          <TileLayer
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          />
 
-      {/* Map Controls */}
-      <div className="absolute top-6 right-6 flex flex-col gap-2 z-10">
-        <Button size="icon" variant="secondary" className="shadow-lg"><ZoomIn className="h-4 w-4" /></Button>
-        <Button size="icon" variant="secondary" className="shadow-lg"><ZoomOut className="h-4 w-4" /></Button>
-        <div className="h-4" />
-        <Button size="icon" variant="secondary" className="shadow-lg"><Layers className="h-4 w-4" /></Button>
-        <Button size="icon" variant="secondary" className="shadow-lg"><Navigation className="h-4 w-4" /></Button>
-      </div>
+          {/* Disaster Markers */}
+          {!isLoading && alerts?.map((alert) => (
+            <Marker 
+              key={alert.id} 
+              position={[alert.lat, alert.lng]}
+              icon={createCustomIcon(alert.severity)}
+              eventHandlers={{
+                click: () => setSelectedRegion(alert),
+              }}
+            >
+              <Popup className="custom-popup">
+                <div className="p-1">
+                  <p className="font-bold text-sm">{alert.type}</p>
+                  <p className="text-xs text-muted-foreground">{alert.location}</p>
+                  <Badge variant="secondary" className="mt-2 text-[10px]">
+                    {alert.severity}
+                  </Badge>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
 
-      {/* Search & Filter Bar */}
-      <div className="absolute top-6 left-6 z-10 w-80 space-y-4">
-        <div className="bg-card/90 backdrop-blur border border-border rounded-xl p-2 shadow-2xl flex items-center gap-2">
-          <div className="flex-1 px-3 py-2 text-sm text-muted-foreground">Search region or sensor...</div>
-          <Button size="icon" variant="ghost"><Filter className="h-4 w-4" /></Button>
+          {/* Risk Zones (Circles) */}
+          {riskScores?.map((score, idx) => (
+            <Circle
+              key={idx}
+              center={[score.lat || 0, score.lng || 0]}
+              radius={20000}
+              pathOptions={{
+                fillColor: score.score > 70 ? '#ef4444' : score.score > 40 ? '#f59e0b' : '#3b82f6',
+                fillOpacity: 0.2,
+                color: 'transparent'
+              }}
+            />
+          ))}
+
+          {/* Layer Overlays (Simulated with Circle/Rectangles if needed, but TileLayers are better) */}
+          {activeLayers.precipitation && (
+             <TileLayer
+                url="https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=YOUR_API_KEY"
+                opacity={0.4}
+             />
+          )}
+        </MapContainer>
+
+        {/* Map Controls Overlay */}
+        <div className="absolute top-6 right-6 flex flex-col gap-2 z-[1000]">
+          <Card className="bg-card/90 backdrop-blur border-border shadow-2xl p-1">
+            <div className="flex flex-col gap-1">
+              <Button size="icon" variant="ghost" className="h-8 w-8"><ZoomIn className="h-4 w-4" /></Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8"><ZoomOut className="h-4 w-4" /></Button>
+              <Separator className="my-1" />
+              <Button size="icon" variant="ghost" className="h-8 w-8"><Navigation className="h-4 w-4" /></Button>
+            </div>
+          </Card>
         </div>
 
-        <Card className="bg-card/90 backdrop-blur border-border shadow-2xl">
-          <CardContent className="p-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold text-sm">Active Layers</h3>
-              <Badge variant="outline" className="text-[10px]">3 Active</Badge>
-            </div>
-            <div className="space-y-2">
-              {['Precipitation Heatmap', 'Seismic Fault Lines', 'Population Density'].map((layer) => (
-                <div key={layer} className="flex items-center justify-between p-2 rounded-lg bg-secondary/50 border border-border/50">
-                  <span className="text-xs">{layer}</span>
-                  <div className="h-4 w-8 bg-primary rounded-full relative">
-                    <div className="absolute right-1 top-1 h-2 w-2 bg-white rounded-full" />
+        {/* Layer Toggles Overlay */}
+        <div className="absolute top-6 left-6 z-[1000] w-64 space-y-4">
+          <Card className="bg-card/90 backdrop-blur border-border shadow-2xl">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Layers className="h-4 w-4" />
+                Map Layers
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0 space-y-2">
+              {[
+                { id: 'precipitation', label: 'Precipitation Heatmap', icon: Wind },
+                { id: 'seismic', label: 'Seismic Fault Lines', icon: Activity },
+                { id: 'population', label: 'Population Density', icon: Users }
+              ].map((layer) => (
+                <div key={layer.id} className="flex items-center justify-between p-2 rounded-lg bg-secondary/50 border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <layer.icon className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs">{layer.label}</span>
                   </div>
+                  <button 
+                    onClick={() => setActiveLayers(prev => ({ ...prev, [layer.id]: !prev[layer.id as keyof typeof prev] }))}
+                    className={cn(
+                      "h-4 w-8 rounded-full relative transition-colors",
+                      activeLayers[layer.id as keyof typeof activeLayers] ? "bg-primary" : "bg-muted"
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-1 h-2 w-2 bg-white rounded-full transition-all",
+                      activeLayers[layer.id as keyof typeof activeLayers] ? "right-1" : "left-1"
+                    )} />
+                  </button>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Risk Overlay Simulation */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Simulated Heatmap Blobs */}
-        <div className="absolute top-1/4 left-1/3 w-64 h-64 bg-emergency/20 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-warning/10 rounded-full blur-[100px]" />
-
-        {/* Live Markers from Backend */}
-        {!isLoading && alerts?.map((alert, index) => {
-          // Randomly position markers for simulation since we don't have lat/long in the mock data yet
-          const top = 20 + (index * 25) + "%";
-          const left = 30 + (index * 20) + "%";
-          const color = alert.severity === "Emergency" ? "text-emergency" : alert.severity === "Warning" ? "text-warning" : "text-blue-400";
-          const bgColor = alert.severity === "Emergency" ? "bg-emergency/30" : alert.severity === "Warning" ? "bg-warning/30" : "bg-blue-400/30";
-
-          return (
-            <div key={alert.id} className="absolute pointer-events-auto group" style={{ top, left }}>
-              <div className="relative">
-                <div className={cn("absolute -inset-4 rounded-full animate-ping", bgColor)} />
-                <MapPin className={cn("h-8 w-8 drop-shadow-[0_0_10px_rgba(0,0,0,0.5)] cursor-pointer", color)} />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-card border border-border rounded-lg p-3 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                  <p className={cn("text-xs font-bold", color)}>{alert.severity.toUpperCase()} RISK</p>
-                  <p className="text-sm font-bold">{alert.location}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">{alert.type}: {Math.round(alert.confidence * 100)}% Confidence</p>
-                  <Button size="sm" className="w-full mt-2 h-7 text-[10px]">View Details</Button>
-                </div>
+        {/* Legend Overlay */}
+        <div className="absolute bottom-6 left-6 z-[1000]">
+          <Card className="bg-card/90 backdrop-blur border-border rounded-xl p-4 shadow-2xl w-64">
+            <h4 className="text-xs font-bold mb-3 uppercase tracking-wider opacity-70">Risk Legend</h4>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="h-3 w-3 rounded-full bg-emergency shadow-[0_0_8px_#ef4444]" />
+                <span className="text-xs">Emergency (Immediate Action)</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-3 w-3 rounded-full bg-warning shadow-[0_0_8px_#f59e0b]" />
+                <span className="text-xs">Warning (High Probability)</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-3 w-3 rounded-full bg-blue-400 shadow-[0_0_8px_#3b82f6]" />
+                <span className="text-xs">Watch (Monitoring)</span>
               </div>
             </div>
-          );
-        })}
+          </Card>
+        </div>
       </div>
 
-      {/* Bottom Legend */}
-      <div className="absolute bottom-6 left-6 right-6 z-10 flex justify-between items-end">
-        <div className="bg-card/90 backdrop-blur border border-border rounded-xl p-4 shadow-2xl w-64">
-          <h4 className="text-xs font-bold mb-3 uppercase tracking-wider opacity-70">Risk Legend</h4>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="h-3 w-3 rounded-full bg-emergency" />
-              <span className="text-xs">Emergency (Immediate Action)</span>
+      {/* Side Panel for Selected Region */}
+      <div className={cn(
+        "w-96 border-l border-border bg-card/50 backdrop-blur-xl transition-all duration-300 ease-in-out z-10 flex flex-col",
+        selectedRegion ? "translate-x-0" : "translate-x-full absolute right-0 h-full"
+      )}>
+        {selectedRegion && (
+          <>
+            <div className="p-6 border-b border-border flex justify-between items-center">
+              <div>
+                <Badge className={cn(
+                  "mb-2",
+                  selectedRegion.severity === "Emergency" ? "bg-emergency/20 text-emergency border-emergency/50" :
+                  selectedRegion.severity === "Warning" ? "bg-warning/20 text-warning border-warning/50" :
+                  "bg-blue-400/20 text-blue-400 border-blue-400/50"
+                )}>
+                  {selectedRegion.severity}
+                </Badge>
+                <h2 className="text-xl font-bold">{selectedRegion.location}</h2>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setSelectedRegion(null)}>
+                <X className="h-5 w-5" />
+              </Button>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="h-3 w-3 rounded-full bg-warning" />
-              <span className="text-xs">Warning (High Probability)</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="h-3 w-3 rounded-full bg-blue-400" />
-              <span className="text-xs">Watch (Monitoring)</span>
-            </div>
-          </div>
-        </div>
 
-        <div className="flex gap-2">
-          <Button variant="secondary" className="shadow-lg gap-2">
-            <ShieldAlert className="h-4 w-4 text-emergency" />
-            Dispatch Emergency Services
-          </Button>
-        </div>
+            <ScrollArea className="flex-1">
+              <div className="p-6 space-y-6">
+                <section className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Disaster Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
+                      <p className="text-[10px] text-muted-foreground mb-1">Type</p>
+                      <div className="flex items-center gap-2">
+                        {selectedRegion.type === "Cyclone" ? <Wind className="h-4 w-4" /> : 
+                         selectedRegion.type === "Flash Flood" ? <Waves className="h-4 w-4" /> : 
+                         <Activity className="h-4 w-4" />}
+                        <span className="text-sm font-medium">{selectedRegion.type}</span>
+                      </div>
+                    </div>
+                    <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
+                      <p className="text-[10px] text-muted-foreground mb-1">AI Confidence</p>
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">{Math.round(selectedRegion.confidence * 100)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {selectedRegion.description}
+                  </p>
+                </section>
+
+                <Separator />
+
+                <section className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Impact Analysis</h3>
+                  <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl border border-primary/20">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Affected Population</p>
+                      <p className="text-lg font-bold">{selectedRegion.affectedPopulation.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Recommended Actions</h3>
+                  <div className="space-y-2">
+                    {selectedRegion.recommendedActions.map((action, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/20 border border-border/50">
+                        <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0 mt-0.5">
+                          {i + 1}
+                        </div>
+                        <span className="text-xs leading-normal">{action}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Timeline</h3>
+                  <div className="space-y-4 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-border">
+                    <div className="relative pl-8">
+                      <div className="absolute left-0 top-1.5 h-4 w-4 rounded-full bg-primary border-4 border-background" />
+                      <p className="text-xs font-bold">Alert Issued</p>
+                      <p className="text-[10px] text-muted-foreground">{new Date(selectedRegion.timestamp).toLocaleString()}</p>
+                    </div>
+                    <div className="relative pl-8">
+                      <div className="absolute left-0 top-1.5 h-4 w-4 rounded-full bg-muted border-4 border-background" />
+                      <p className="text-xs font-bold">Model Update Expected</p>
+                      <p className="text-[10px] text-muted-foreground">In 45 minutes</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </ScrollArea>
+
+            <div className="p-6 border-t border-border bg-secondary/10">
+              <Button className="w-full gap-2" size="lg">
+                <ShieldAlert className="h-4 w-4" />
+                Dispatch Emergency Services
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
