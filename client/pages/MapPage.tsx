@@ -38,9 +38,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
 // Fix Leaflet icon issue
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
