@@ -39,7 +39,7 @@ const App = () => (
         <Layout>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/map" element={<PlaceholderPage title="Live Disaster Heatmap" />} />
+            <Route path="/map" element={<MapPage />} />
             <Route path="/alerts" element={<PlaceholderPage title="Alert Management" />} />
             <Route path="/analytics" element={<PlaceholderPage title="Historical Analytics" />} />
             <Route path="/health" element={<PlaceholderPage title="System Health & Sensor Monitoring" />} />
