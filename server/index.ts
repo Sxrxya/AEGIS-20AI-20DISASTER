@@ -28,6 +28,10 @@ export function createServer() {
 
   app.get("/api/demo", handleDemo);
 
+  // Auth API
+  app.post("/api/auth/login", handleLogin);
+  app.post("/api/auth/signup", handleSignup);
+
   // Disaster Platform API
   app.get("/api/stats", getDashboardStats);
   app.get("/api/alerts", getActiveAlerts);
