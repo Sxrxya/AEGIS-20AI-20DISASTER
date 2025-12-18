@@ -14,18 +14,20 @@ import {
   Droplets,
   Waves
 } from "lucide-react";
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
   Cell
 } from "recharts";
+import { useQuery } from "@tanstack/react-query";
+import { DashboardStats, Alert, RiskScore } from "@shared/api";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -83,6 +85,23 @@ const activeAlerts = [
 ];
 
 export default function Index() {
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
+    queryKey: ["dashboard-stats"],
+    queryFn: () => fetch("/api/stats").then((res) => res.json()),
+  });
+
+  const { data: alerts, isLoading: alertsLoading } = useQuery<Alert[]>({
+    queryKey: ["active-alerts"],
+    queryFn: () => fetch("/api/alerts").then((res) => res.json()),
+  });
+
+  const { data: riskScores, isLoading: riskScoresLoading } = useQuery<RiskScore[]>({
+    queryKey: ["risk-scores"],
+    queryFn: () => fetch("/api/risk-scores").then((res) => res.json()),
+  });
+
+  const isLoading = statsLoading || alertsLoading || riskScoresLoading;
+
   return (
     <div className="p-6 space-y-6">
       {/* Header Section */}
@@ -115,7 +134,9 @@ export default function Index() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Alerts</p>
-                <h3 className="text-2xl font-bold mt-1">08</h3>
+                <h3 className="text-2xl font-bold mt-1">
+                  {statsLoading ? "..." : String(stats?.activeAlerts).padStart(2, '0')}
+                </h3>
               </div>
               <div className="p-2 bg-emergency/10 rounded-lg">
                 <AlertTriangle className="h-5 w-5 text-emergency" />
@@ -133,7 +154,9 @@ export default function Index() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Avg. Risk Score</p>
-                <h3 className="text-2xl font-bold mt-1">42.5</h3>
+                <h3 className="text-2xl font-bold mt-1">
+                  {statsLoading ? "..." : stats?.avgRiskScore}
+                </h3>
               </div>
               <div className="p-2 bg-warning/10 rounded-lg">
                 <TrendingUp className="h-5 w-5 text-warning" />
@@ -151,7 +174,9 @@ export default function Index() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Sensors Online</p>
-                <h3 className="text-2xl font-bold mt-1">1,240</h3>
+                <h3 className="text-2xl font-bold mt-1">
+                  {statsLoading ? "..." : stats?.sensorsOnline.toLocaleString()}
+                </h3>
               </div>
               <div className="p-2 bg-safe/10 rounded-lg">
                 <Activity className="h-5 w-5 text-safe" />
@@ -169,7 +194,9 @@ export default function Index() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Population at Risk</p>
-                <h3 className="text-2xl font-bold mt-1">2.4M</h3>
+                <h3 className="text-2xl font-bold mt-1">
+                  {statsLoading ? "..." : `${(stats?.populationAtRisk || 0) / 1000000}M`}
+                </h3>
               </div>
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Users className="h-5 w-5 text-primary" />
@@ -248,34 +275,45 @@ export default function Index() {
             <Badge variant="outline" className="animate-pulse border-emergency text-emergency">LIVE</Badge>
           </CardHeader>
           <CardContent className="space-y-4">
-            {activeAlerts.map((alert) => (
-              <div key={alert.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/30 border border-border/50 hover:border-primary/50 transition-colors cursor-pointer">
-                <div className={cn("p-2 rounded-full bg-background", alert.color)}>
-                  <alert.icon className="h-4 w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <p className="text-sm font-bold truncate">{alert.type}</p>
-                    <span className="text-[10px] text-muted-foreground flex items-center">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {alert.time}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground flex items-center mt-0.5">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    {alert.location}
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="secondary" className="text-[10px] h-5">
-                      {alert.severity}
-                    </Badge>
-                    <span className="text-[10px] text-muted-foreground">
-                      AI Confidence: <span className="text-foreground font-medium">{alert.confidence}</span>
-                    </span>
-                  </div>
-                </div>
+            {alertsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
-            ))}
+            ) : (
+              alerts?.map((alert) => {
+                const Icon = alert.type === "Cyclone" ? Wind : alert.type === "Flash Flood" ? Waves : Activity;
+                const color = alert.severity === "Emergency" ? "text-emergency" : alert.severity === "Warning" ? "text-warning" : "text-blue-400";
+
+                return (
+                  <div key={alert.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/30 border border-border/50 hover:border-primary/50 transition-colors cursor-pointer">
+                    <div className={cn("p-2 rounded-full bg-background", color)}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <p className="text-sm font-bold truncate">{alert.type}</p>
+                        <span className="text-[10px] text-muted-foreground flex items-center">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground flex items-center mt-0.5">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {alert.location}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="secondary" className="text-[10px] h-5">
+                          {alert.severity}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground">
+                          AI Confidence: <span className="text-foreground font-medium">{Math.round(alert.confidence * 100)}%</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
             <Button variant="outline" className="w-full text-xs">
               View All Alerts
             </Button>
@@ -293,37 +331,43 @@ export default function Index() {
           </CardHeader>
           <CardContent>
             <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={regionalRisk} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                  <XAxis type="number" hide />
-                  <YAxis 
-                    dataKey="region" 
-                    type="category" 
-                    stroke="hsl(var(--muted-foreground))" 
-                    fontSize={10}
-                    width={80}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: 'transparent' }}
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--card))", 
-                      borderColor: "hsl(var(--border))",
-                      borderRadius: "8px"
-                    }}
-                  />
-                  <Bar dataKey="risk" radius={[0, 4, 4, 0]} barSize={20}>
-                    {regionalRisk.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.risk > 70 ? 'hsl(var(--emergency))' : entry.risk > 40 ? 'hsl(var(--warning))' : 'hsl(var(--primary))'} 
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {riskScoresLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={riskScores} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                    <XAxis type="number" hide />
+                    <YAxis
+                      dataKey="region"
+                      type="category"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={10}
+                      width={80}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'transparent' }}
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        borderColor: "hsl(var(--border))",
+                        borderRadius: "8px"
+                      }}
+                    />
+                    <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={20}>
+                      {riskScores?.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.score > 70 ? 'hsl(var(--emergency))' : entry.score > 40 ? 'hsl(var(--warning))' : 'hsl(var(--primary))'}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </CardContent>
         </Card>
