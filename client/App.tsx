@@ -30,8 +30,9 @@ const PlaceholderPage = ({ title }: { title: string }) => (
       </div>
       <h2 className="text-xl font-semibold mb-2">Module Under Development</h2>
       <p className="text-muted-foreground max-w-md">
-        This module is currently being integrated with the real-time data streaming layer.
-        Please continue prompting to fill in this page's contents.
+        This module is currently being integrated with the real-time data
+        streaming layer. Please continue prompting to fill in this page's
+        contents.
       </p>
     </div>
   </div>
@@ -48,36 +49,66 @@ const App = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
 
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Layout><Index /></Layout>
-              </ProtectedRoute>
-            } />
-            <Route path="/map" element={
-              <ProtectedRoute>
-                <Layout><MapPage /></Layout>
-              </ProtectedRoute>
-            } />
-            <Route path="/alerts" element={
-              <ProtectedRoute>
-                <Layout><AlertsPage /></Layout>
-              </ProtectedRoute>
-            } />
-            <Route path="/analytics" element={
-              <ProtectedRoute>
-                <Layout><AnalyticsPage /></Layout>
-              </ProtectedRoute>
-            } />
-            <Route path="/health" element={
-              <ProtectedRoute>
-                <Layout><HealthPage /></Layout>
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Layout><SettingsPage /></Layout>
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Index />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/map"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <MapPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/alerts"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AlertsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AnalyticsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/health"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <HealthPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <SettingsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

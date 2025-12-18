@@ -9,7 +9,7 @@ import {
   getRiskScores,
   getAnalytics,
   getSystemHealth,
-  getUserSettings
+  getUserSettings,
 } from "./routes/disasters";
 
 export function createServer() {

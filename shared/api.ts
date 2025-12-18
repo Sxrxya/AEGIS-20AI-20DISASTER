@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'GOV' | 'PUBLIC' | 'EMERGENCY';
+  role: "GOV" | "PUBLIC" | "EMERGENCY";
 }
 
 export interface AuthResponse {
@@ -13,7 +13,7 @@ export interface AuthResponse {
 export interface RiskScore {
   region: string;
   score: number;
-  trend: 'up' | 'down' | 'stable';
+  trend: "up" | "down" | "stable";
   disasterType: string;
   confidence: number;
   lat?: number;
@@ -23,14 +23,14 @@ export interface RiskScore {
 export interface Alert {
   id: string;
   type: string;
-  severity: 'Watch' | 'Warning' | 'Emergency';
+  severity: "Watch" | "Warning" | "Emergency";
   location: string;
   timestamp: string;
   confidence: number;
   description: string;
   affectedPopulation: number;
   recommendedActions: string[];
-  status: 'Active' | 'Resolved' | 'Acknowledged';
+  status: "Active" | "Resolved" | "Acknowledged";
   lat: number;
   lng: number;
 }
@@ -49,11 +49,21 @@ export interface AnalyticsData {
 }
 
 export interface SystemHealth {
-  models: { name: string; status: 'online' | 'offline'; version: string; latency: number }[];
-  ingestion: { status: 'online' | 'degraded' | 'offline'; rate: number };
+  models: {
+    name: string;
+    status: "online" | "offline";
+    version: string;
+    latency: number;
+  }[];
+  ingestion: { status: "online" | "degraded" | "offline"; rate: number };
   sensors: { total: number; active: number; incidents: number };
   api: { latency: number; errorRate: number };
-  recentLogs: { id: string; timestamp: string; level: 'info' | 'warn' | 'error'; message: string }[];
+  recentLogs: {
+    id: string;
+    timestamp: string;
+    level: "info" | "warn" | "error";
+    message: string;
+  }[];
 }
 
 export interface UserSettings {
@@ -69,7 +79,7 @@ export interface UserSettings {
     landslide: number;
   };
   subscriptions: string[];
-  role: 'GOV' | 'PUBLIC' | 'EMERGENCY';
+  role: "GOV" | "PUBLIC" | "EMERGENCY";
 }
 
 export interface DemoResponse {

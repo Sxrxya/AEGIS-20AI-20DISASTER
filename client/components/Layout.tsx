@@ -1,18 +1,18 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  AlertTriangle, 
-  Map as MapIcon, 
-  BarChart3, 
-  Settings, 
+import {
+  LayoutDashboard,
+  AlertTriangle,
+  Map as MapIcon,
+  BarChart3,
+  Settings,
   Bell,
   Shield,
   Menu,
   X,
   Activity,
   LogOut,
-  User as UserIcon
+  User as UserIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -46,7 +46,11 @@ export function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const userInitials = user?.name
-    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase()
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
     : "U";
 
   return (
@@ -71,7 +75,9 @@ export function Layout({ children }: LayoutProps) {
                 to={item.href}
                 className={cn(
                   "transition-colors hover:text-primary",
-                  location.pathname === item.href ? "text-primary" : "text-muted-foreground"
+                  location.pathname === item.href
+                    ? "text-primary"
+                    : "text-muted-foreground",
                 )}
               >
                 {item.name}
@@ -87,7 +93,10 @@ export function Layout({ children }: LayoutProps) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
                   <Avatar className="h-8 w-8 border border-border">
                     <AvatarFallback className="bg-secondary text-xs font-bold">
                       {userInitials}
@@ -98,7 +107,9 @@ export function Layout({ children }: LayoutProps) {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.name}</p>
+                    <p className="text-sm font-medium leading-none">
+                      {user?.name}
+                    </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user?.email}
                     </p>
@@ -114,7 +125,10 @@ export function Layout({ children }: LayoutProps) {
                   <span>Role: {user?.role}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="gap-2 text-emergency focus:text-emergency" onClick={logout}>
+                <DropdownMenuItem
+                  className="gap-2 text-emergency focus:text-emergency"
+                  onClick={logout}
+                >
                   <LogOut className="h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
@@ -127,7 +141,11 @@ export function Layout({ children }: LayoutProps) {
               className="md:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
           </div>
         </div>
@@ -145,7 +163,7 @@ export function Layout({ children }: LayoutProps) {
                   "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
                   location.pathname === item.href
                     ? "bg-primary/10 text-primary border-l-2 border-primary"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -157,10 +175,13 @@ export function Layout({ children }: LayoutProps) {
             <div className="bg-secondary/50 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-2 w-2 bg-safe rounded-full" />
-                <span className="text-xs font-semibold uppercase tracking-wider">System Status</span>
+                <span className="text-xs font-semibold uppercase tracking-wider">
+                  System Status
+                </span>
               </div>
               <p className="text-[10px] text-muted-foreground leading-tight">
-                All ML models operational. Real-time ingestion active from 1,240 sensors.
+                All ML models operational. Real-time ingestion active from 1,240
+                sensors.
               </p>
             </div>
           </div>
@@ -179,7 +200,7 @@ export function Layout({ children }: LayoutProps) {
                     "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium",
                     location.pathname === item.href
                       ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                   )}
                 >
                   <item.icon className="h-5 w-5" />
@@ -191,9 +212,7 @@ export function Layout({ children }: LayoutProps) {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto">{children}</main>
       </div>
 
       {/* Footer */}
@@ -201,12 +220,20 @@ export function Layout({ children }: LayoutProps) {
         <div className="container flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 opacity-50">
             <Shield className="h-4 w-4" />
-            <span className="text-xs">© 2024 Aegis Disaster AI. Government Grade Security.</span>
+            <span className="text-xs">
+              © 2024 Aegis Disaster AI. Government Grade Security.
+            </span>
           </div>
           <div className="flex gap-6 text-xs text-muted-foreground">
-            <a href="#" className="hover:text-primary">Privacy Policy</a>
-            <a href="#" className="hover:text-primary">Compliance</a>
-            <a href="#" className="hover:text-primary">API Documentation</a>
+            <a href="#" className="hover:text-primary">
+              Privacy Policy
+            </a>
+            <a href="#" className="hover:text-primary">
+              Compliance
+            </a>
+            <a href="#" className="hover:text-primary">
+              API Documentation
+            </a>
           </div>
         </div>
       </footer>
