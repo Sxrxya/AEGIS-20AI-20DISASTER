@@ -57,6 +57,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        warning: "hsl(var(--warning))",
+        emergency: "hsl(var(--emergency))",
+        safe: "hsl(var(--safe))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -80,10 +83,21 @@ export default {
             height: "0",
           },
         },
+        pulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+        "emergency-pulse": {
+          "0%": { boxShadow: "0 0 0 0 rgba(239, 68, 68, 0.7)" },
+          "70%": { boxShadow: "0 0 0 10px rgba(239, 68, 68, 0)" },
+          "100%": { boxShadow: "0 0 0 0 rgba(239, 68, 68, 0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "emergency": "emergency-pulse 2s infinite",
       },
     },
   },
