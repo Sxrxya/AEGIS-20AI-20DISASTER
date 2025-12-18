@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
+import { getDashboardStats, getActiveAlerts, getRiskScores } from "./routes/disasters";
 
 export function createServer() {
   const app = express();
@@ -18,6 +19,11 @@ export function createServer() {
   });
 
   app.get("/api/demo", handleDemo);
+
+  // Disaster Platform API
+  app.get("/api/stats", getDashboardStats);
+  app.get("/api/alerts", getActiveAlerts);
+  app.get("/api/risk-scores", getRiskScores);
 
   return app;
 }
