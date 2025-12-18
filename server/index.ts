@@ -2,7 +2,14 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { getDashboardStats, getActiveAlerts, getRiskScores } from "./routes/disasters";
+import {
+  getDashboardStats,
+  getActiveAlerts,
+  getRiskScores,
+  getAnalytics,
+  getSystemHealth,
+  getUserSettings
+} from "./routes/disasters";
 
 export function createServer() {
   const app = express();
@@ -24,6 +31,9 @@ export function createServer() {
   app.get("/api/stats", getDashboardStats);
   app.get("/api/alerts", getActiveAlerts);
   app.get("/api/risk-scores", getRiskScores);
+  app.get("/api/analytics", getAnalytics);
+  app.get("/api/health", getSystemHealth);
+  app.get("/api/settings", getUserSettings);
 
   return app;
 }
