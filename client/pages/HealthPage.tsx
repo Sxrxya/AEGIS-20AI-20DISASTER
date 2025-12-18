@@ -12,7 +12,9 @@ import {
   Terminal,
   ShieldCheck,
   Zap,
-  Search
+  Search,
+  ChevronRight,
+  BrainCircuit
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SystemHealth } from "@shared/api";
