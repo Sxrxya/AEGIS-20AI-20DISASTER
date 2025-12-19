@@ -58,4 +58,5 @@ pnpm dev
 - **API Access**: Tiered pricing for third-party integrations.
 
 ---
-*Built by the Aegis Product Team (Meta-level Engineering).*
+*Build by Suriyaprakash M
+.*
